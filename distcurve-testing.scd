@@ -53,6 +53,10 @@ DistCurve.know = true;
 	//n.free;
 }.fork);
 
+~cap = AudioCapture("/Users/fsc/Desktop/SC_CLEAN/DIST/_capture");
+~cap.track = "dist";
+~cap.stop();
+
 
 ({
 	~sourceBuf = Buffer.read(s, "/Users/fsc/Desktop/SET EM BR/sounds/HumF_50.wav");
