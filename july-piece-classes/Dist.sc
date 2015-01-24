@@ -59,13 +59,13 @@ DistCurve : Singleton {
 		var sizeDiff = buffers.size() - num;
 
 		if (sizeDiff > 0) {
-			log.debug("Removing % unused buffers ([%..]).", sizeDiff, num);
+			log.info("Removing % unused buffers ([%..]).", sizeDiff, num);
 			buffers[num..].do(_.free);
 			buffers = buffers[0..(num - 1)];
 		};
 
 		if (sizeDiff < 0) {
-			log.debug("Preparing to allocate % new buffers.", sizeDiff.neg);
+			log.info("Preparing to allocate % new buffers.", sizeDiff.neg);
 			sizeDiff.neg.do {
 				buffers.add(nil);
 			}
@@ -82,10 +82,10 @@ DistCurve : Singleton {
 				| desc, i |
 				if (buffers[i].notNil) {
 					buffers[i].sendCollection(this.toWavetable(desc));
-					log.debug("Refilled buffer % with %", buffers[i]);
+					log.info("Refilled buffer % with %", buffers[i]);
 				} {
 					buffers[i] = Buffer.sendCollection(server, this.toWavetable(desc));
-					log.debug("Created new buffer %", buffers[i]);
+					log.info("Created new buffer %", buffers[i]);
 				}
 			};
 
