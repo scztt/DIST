@@ -113,7 +113,7 @@ DistCurve : Singleton {
 		arg in, position, pre, post;
 		position = position ?? { DC.kr(0) };
 
-		if (synced.not) { "Buffers have not yet been synced to the server! You can't call ar yet.".throw };
+//		if (synced.not) { "Buffers have not yet been synced to the server! You can't call ar yet.".throw };
 
 		if (descriptions.size > 1) {
 			^this.xfadeAr(in, position, pre, post);
