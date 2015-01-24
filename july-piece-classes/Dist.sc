@@ -129,7 +129,7 @@ DistCurve : Singleton {
 			this.buildShaper(buffers[i], in, pre, post);
 		});
 
-		^LinSelectX.ar(position * (sigs.size - 1), sigs, wrap:0);
+		^LinSelectX.ar(position * (sigs.size - 1), sigs);
 	}
 
 	buildShaper {
