@@ -1,5 +1,5 @@
 DistCurve : Singleton {
-	var <>server, <descriptions, <buffers, <size=512, <mirror = false, synced = false, log;
+	var <>server, <descriptions, <buffers, <size=2048, <mirror = false, synced = false, log;
 
 	init {
 		server = Server.default;
@@ -12,14 +12,14 @@ DistCurve : Singleton {
 	set {
 		arg ...inDescriptions;
 		descriptions = inDescriptions;
-		log.debug("Setting: %", descriptions);
-		log.debug("Current buffers: %", buffers);
+		log.info("Setting: %", descriptions);
+		log.info("Current buffers: %", buffers);
 		this.updateBuffers();
 	}
 
 	doOnServerBoot {
 		if (buffers.size() > 0) {
-			log.error("Uncleared buffers detected on server boot! These are invalid - why are they here?");
+			log.warning("Uncleared buffers detected on server boot! These are invalid - why are they here?");
 			this.clearBuffers();
 		};
 
