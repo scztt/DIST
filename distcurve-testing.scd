@@ -1,6 +1,6 @@
 l = LCDevice();
 l.knobs.last.makeVolumeKnob();
-Log(\DistCurve).level = \debug;
+Log(\DistCurve).level = \info;
 DistCurve.know = true;
 ~sourceBuf = allocRead(s, 1000, 2);
 
@@ -22,7 +22,7 @@ DistCurve.know = true;
 
 	s.sync;
 
-	n = {
+	SynthDef(\destich, {
 		var sig, in;
 		sig = PlayBuf.ar(3, ~sourceBuf.bufnum, rate:[0.1, 0.2]).sum.sum;
 		in = LocalIn.ar(2).sum;
@@ -49,7 +49,7 @@ DistCurve.know = true;
 		sig = Splay.ar(sig);
 		LocalOut.ar(sig);
 		sig * 5;
-	}.play;
+	})
 	//n.free;
 }.fork);
 
@@ -59,18 +59,18 @@ DistCurve.know = true;
 
 
 ({
-	~sourceBuf = Buffer.read(s, "/Users/fsc/Desktop/SET EM BR/sounds/HumF_50.wav");
+	~sourceBuf = ~barrellroll_4 ;
 	// tear r ist
 	DistCurve.h_(
 		[-1, -0.9, -0.1, -0.5, 0, 0.1, 0.0, 1].resamp1(10).collect({ |n| n + 0.01.rand }),
 		[1, 0.9, -0.1, -0.5, 0, 0.1, 0.0, 1].resamp1(50).collect({ |n| n + 0.1.rand }),
 		[-1, 0.9, -0.1, -0.5, 0, 0.3, -0.9, 1].resamp1(100).collect({ |n| n + 0.3.rand })
 	);
-	DistCurve.i_(	Env([1, 0.8, 0.2, -0.6, 0.9, 1], curve:\sin));
+	DistCurve.i_(	Env([1, 0.8, 0.2, -0.6, -0.9, -1], curve:\sin)).plot;
 	DistCurve.j_(
 		[-1, 0, 1],
 		Env([0.25, -0.25,  0.1, -0.1, -0.25, 0.25], curve:\sin)
-	);
+	).plot;
 	DistCurve.k_(	Env([-1, -0.9,  -0.5, 0, 0.5, 0.99, 1], curve:\sin));
 
 	[
@@ -85,17 +85,19 @@ DistCurve.know = true;
 		l.knobRows[0][i].cv = cv;
 	});
 
+
 	SynthDef(\tearist, {
 		| out = 0, hpos = 0, alldelay, alldecay, feedDist, speed |
 		var sig, in;
 		in = LocalIn.ar(2).sum;
-		in = DistCurve.j.ar(in, feedDist);
-		sig = PlayBuf.ar(3, ~sourceBuf.bufnum, rate:[0.33, 0.2, 0.1] * LagUD.kr(speed, 0.4, 0.01)).sum.sum;
+		in = DistCurve.j.ar(in * feedDist.linlin(0, 1, 1, 2.5), feedDist);
+		sig = PlayBuf.ar(3, ~sourceBuf.bufnum, rate:[1, 4/3, 5/3] * LagUD.kr(speed, 0.4, 0.01)).sum.sum;
 		sig = (sig * 5) + LPF.ar(HPF.ar(DelayC.ar(in * 0.6, 0.5, 0.3), 1000), 2000);
 		sig = DelayC.ar(sig, 0.1, { LFNoise2.ar(0.1.rand) * 0.1 } ! 16);
 		sig = Decay.ar(Dust.ar(0.3), 3) + sig;
 		//sig = Decay.ar(Impulse.ar(0.3), 3.1) * sig;
 		sig = DistCurve.h.ar(sig, hpos);
+		alldelay = alldelay.lag(1);
 		sig = AllpassN.ar(sig, 2, alldelay + { 0.2.rand }, alldecay + { 0.1.rand });
 		sig = sig + (sig * HPF.ar(WhiteNoise.ar(0.1), 16000));
 		sig = DistCurve.k.ar(sig);
@@ -107,7 +109,7 @@ DistCurve.know = true;
 		sig = Splay.ar(sig);
 		LocalOut.ar(sig);
 		Out.ar(0, sig);
-	}).add;
+	}).addReplace;
 
 	l.buttons[6].clear();
 	l.buttons[6].buttonOnActions.add({
@@ -133,7 +135,7 @@ DistCurve.know = true;
 	// ~b[1] = Env([-1, -0.6, -0.2, 0.6, 0.2, 1], curve:\sin);
 	// ~b[2] = Env([-1, -0.2,  0.1, 0.1, 1], curve:\welch);
 	// ~b[3] = Env([-1, -0.9,  -0.5, 0, 0.5, 0.99, 1], curve:\sin);
-	~sourceBuf = Buffer.read(s, "/Users/fsc/Desktop/SET EM BR/sounds/HumF_50.wav", bufnum: 0);
+	~sourceBuf = Buffer.read(s, "/Users/fsc/Desktop/SET EM BR/sounds/HumF_50.wav");
 
 	DistCurve.a( [-1, -0.9, -0.1, -0.5, 0, 0.1, 0.0, 1] );
 	DistCurve.b(
@@ -146,7 +148,7 @@ DistCurve.know = true;
 
 	s.sync;
 
-	n = {
+	SynthDef(\desth, {
 		| allpass = 0, hpf = 16000,
 		var sig, in;
 		sig = PlayBuf.ar(3, ~sourceBuf.bufnum, rate:[0.1, 0.2]).sum;
@@ -168,8 +170,7 @@ DistCurve.know = true;
 		sig = Splay.ar(sig);
 		LocalOut.ar(sig);
 		sig;
-
-	}.play;
+	}).addReplace;
 }.fork)
 
 
@@ -238,55 +239,78 @@ DistCurve.know = true;
 		\mirror, ~mirror
 	]);
 }.fork)
-
+b
 
 
 
 
 
 ({
-	~sourceBuf = Buffer.read(s, "/Users/fsc/Desktop/SET EM BR/sounds/HumF_50.wav");
+	~sourceBuf = Buffer.read(s,  "/Users/fsc/Desktop/SET EM BR/sounds/HumA1_44.wav");
+	~sourceBuf = ~humD1_48;
 
-	DistCurve.m(
-		[-1, -0.9, -0.1, -0.5, 0, 0.5, 0.0, 1].resamp1(30).collect({ |n| n + 0.05.rand }),
-		[-1, -0.9, -0.1, -0.5, 0, 0.5, 0.0, 1].resamp1(90).collect({ |n| n + 0.1.rand }),
-		[-1, -0.9, -0.1, -0.5, 0, 0.5, 0.0, 1].resamp1(250).collect({ |n| n + 0.2.rand }),
-	);
+	DistCurve.m_(
+		[-1, -0.9, -0.1, -0.5, 0, 0.5, 0.0, 1].resamp1(10).collect({ |n| n + 0.05.rand }),
+		[-1, -0.9, -0.1, -0.5, 0, 0.5, 0.0, 1].resamp1(15).collect({ |n| n + 0.07.rand }),
+		[-1, -0.7, -0.3, -0.7, 0, -0.3, -0.8, -0.4,  1].resamp1(20).collect({ |n| n + 0.1.rand }),
+	).plot;
 
-	DistCurve.n(Env([-1, -0.6, -0.2, 0.6, 0.2, 1], curve:\sin));
-	DistCurve.o(Env([-1, -0.2,  0.1, 0.1, 1], curve:\welch));
-	DistCurve.p(Env([-1, -0.9,  -0.5, 0, 0.5, 0.99, 1], curve:\sin));
+	DistCurve.n_(Env([-1, -0.6, -0.2, 0.6, 0.2, 1], curve:\sin)).plot;
+	DistCurve.o_(Env([-1, -0.9,  0.1, 0.1, 1], curve:\welch));
+	DistCurve.p_(Env([-1, -0.9,  -0.5, 0, 0.5, 0.99, 1], curve:\sin)).plot;
 
 	SynthDef(\dest2, {
-		var source, sig, in;
+		| t_pulse = 0, impulseFreq = 0.3, decay=5, srcMix=0, select=0, focus=0.8, oct=1 |
+		var source, sig, distSig, in, freqs, amps;
 		RandSeed.ir(1, 14455);
-		source = Mix(Mix(PlayBuf.ar(3, ~sourceBuf.bufnum, rate:[0.14, 0.22], loop:1))) * [1, 1];
-		in = LocalIn.ar(2).sum;
+		freqs = ( Scale.partch_o1.degreeToRatio((0..12), oct) * 0.2).postln;
+		select = SinOsc.ar(impulseFreq / 24, 0.2, 0.5, 0.5);
+		select = select * freqs.size();
+
+		source = Splay.ar(
+			SelectXFocus.ar(select, PlayBuf.ar(3, ~sourceBuf.bufnum, rate:freqs, loop:1), focus) * 6;
+		);
+		in = SoftClipper4.ar(LocalIn.ar(2).sum);
+		in = Compander.ar(in, in, 0.9, slopeAbove:0.1, relaxTime:5);
+		in = in * Lag.kr(Pulse.kr(1 / 18, 0, 2, -1));
 		//in = in[0] - in[1];
-		sig = (source * 8) + LPF.ar(HPF.ar(DelayC.ar(in * 0.9, 0.5, 0.3), 1000), 2000);
+		source = source;
+		sig = (source * 6) + LPF.ar(HPF.ar(DelayC.ar(in * 0.9, 6, impulseFreq.reciprocal * 2), 100), 1000);
 		sig = DelayC.ar(sig, 0.1, { LFNoise2.ar(0.1.rand) * 0.1 } ! 16);
-		// sig = Decay.ar(Dust.ar(0.3), 3) + sig;
-		sig = Decay.ar(Impulse.ar(0.3), 3.1) * sig;
-		sig = (
+
+		//sig = Decay.ar(Impulse.ar(0.3), 3.1) * sig;
+		sig = (LagUD.ar(Impulse.ar(impulseFreq), 0.00001, decay) * sig) +
+		(
 			Decay.ar(Impulse.ar(0.65), 1.5)
 			- Decay.ar(Impulse.ar(0.15, 0.50, 0.6), 4.1)
 			- Decay.ar(Impulse.ar(0.0725, 0.25, 0.9), 8.1)
 		) * sig;
-//		sig = sig + (LFSaw.ar([600, 1400, 400] - 3, 0, 0.001)).sum;
-		sig = DistCurve.m.ar(sig, MouseX.kr(0, 1)).postln;
-		sig = AllpassN.ar(sig, 1, { 1.0.rand }, { 0.1.rand });
-		sig = sig + (sig * HPF.ar(WhiteNoise.ar(0.04), 16000));
-		sig = DistCurve.o.ar(sig).postln;
-		sig = (sig * 0.29) +  LPF.ar(sig, 60) + HPF.ar(sig, 12000);
-		sig = Mirror.ar(sig * 5);
-		sig = DistCurve.n.ar(sig).postln;
-		sig = sig * LPF.ar(sig, 20);
+		srcMix = MouseY.kr(-1, 1);
+		distSig = XFade2.ar(sig, source, srcMix) * 8;
+		distSig = distSig.tanh * 0.5;
+		distSig = DistCurve.m.ar(distSig, 0.7);
+		distSig = AllpassN.ar(distSig, 1, { 1.0.rand }, { 0.1.rand });
+		distSig = distSig + (distSig * HPF.ar(WhiteNoise.ar(0.04), 16000));
+		distSig = DistCurve.o.ar(distSig);
+		distSig = (distSig * 0.29) +  LPF.ar(distSig, 60) + HPF.ar(distSig, 12000);
+		distSig = Mirror.ar(distSig * 2);
+		distSig = DistCurve.n.ar(distSig);
+		distSig = distSig * LPF.ar(distSig, 40);
+
+		sig = sig + distSig;
+		//sig = distSig;
+
 		sig = LeakDC.ar(sig);
 		sig = Splay.ar(sig);
-		// LocalOut.ar(sig);
+		LocalOut.ar(sig);
 		Out.ar(0, sig);
-	}).add;
+	}).addReplace;
+
 	s.sync;
 	n = Synth(\dest2);
+	n.set(\oct, 2);
+	n.set(\impulseFreq, 4);
+	n.set(\decay, 0.3);
+
 	n.free
 }.fork)
